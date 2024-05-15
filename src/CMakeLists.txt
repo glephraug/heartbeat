@@ -3,10 +3,9 @@ add_executable(heartbeat
    main.cpp
 )
 
-add_dependencies(heartbeat
-   opencv
-   pocketfft
-)
+if(MSVC)
+   set_property(TARGET heartbeat PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded")
+endif()
 
 target_include_directories(heartbeat PRIVATE
 	${OpenCV_INCLUDE_DIRS}
