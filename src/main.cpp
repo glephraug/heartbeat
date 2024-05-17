@@ -11,10 +11,65 @@
 
 int main(int argc, char ** argv)
 {
-   bool show_frequencies = true;
+   bool show_frequencies = false;
+   bool default_data = false;
+   bool show_help = false;
 
-   const std::string video_file = "CodingTest.mov";
-   cv::Rect roi(400, 150, 110, 80);
+   std::string video_file;
+   cv::Rect roi;
+
+   if(argc < 2){
+      show_help = true;
+   }else{
+      int i;
+      for(i = 1; i < argc && argv[i][0] == '-'; ++i){
+         std::string arg(argv[i]);
+         if(arg == "--help"){
+            show_help = true;
+         }else if(arg == "--default"){
+            default_data = true;
+         }else if(arg == "--frequencies"){
+            show_frequencies = true;
+         }else{
+            std::cerr << "Unknown option " << arg << std::endl;
+            show_help = true;
+         }
+      }
+
+      if(default_data){
+         video_file = "CodingTest.mov";
+         roi = cv::Rect(400, 150, 110, 80);
+      }else if(i+4 >= argc){
+         std::cerr << "Not enough arguments" << std::endl;
+         show_help = true;
+      }else{
+         try{
+            video_file = argv[i];
+            roi.x = std::stoi(argv[i+1]);
+            roi.y = std::stoi(argv[i+2]);
+            roi.width = std::stoi(argv[i+3]);
+            roi.height = std::stoi(argv[i+4]);
+         }catch(std::invalid_argument & e){
+            std::cerr << "Invalid ROI argument" << std::endl;
+            show_help = true;
+         }
+      }
+   }
+   
+   if(show_help){
+      std::cout << "Usage: " << std::endl 
+                << argv[0] << " <video_file> <x> <y> <width> <height>" << std::endl
+                << "x, y, width, and height specify the region within the video to sample when detecting the heart rate." << std::endl
+                << "Options:" << std::endl
+                << " --help         Display this help message." << std::endl
+                << " --default      Use the default video CodingTest.mov with roi x=400 y=150 width=110 height=80." << std::endl
+                << " --frequencies  Show all detected frequencies." << std::endl; 
+      return 0;
+   }
+
+   // Minimum and maximum possible heart rates.
+   double minimum_bpm = 20.0;
+   double maximum_bpm = 150.0;
 
    // open video
    cv::VideoCapture video(video_file);
@@ -46,6 +101,17 @@ int main(int argc, char ** argv)
    }
    std::cout << "obtained " << samples.size() << " samples" << std::endl;
 
+   if(samples.empty()){
+      std::cerr << "There were no samples within the video file" << std::endl;
+      return 0;
+   }
+   
+
+   // Run fourier transform
+
+   double total_time = samples.size()/fps;
+   double frequency_interval = 1.0/total_time;
+
    pocketfft::shape_t shape_in{samples.size()};
    pocketfft::stride_t stride_in{sizeof(double)};
    pocketfft::stride_t stride_out{sizeof(std::complex<double>)};
@@ -56,11 +122,34 @@ int main(int argc, char ** argv)
 
    if(show_frequencies){
       for(int i = 0; i < fourier.size()/2; ++i){
-         std::cout << i << ": " << fourier[i] << std::endl;
+         std::cout << (i*frequency_interval) << " Hz (" << (i*frequency_interval*60.0) << " bpm) : " << fourier[i].real() << std::endl;
       }
    }
 
-   // get reasonable frequency
+
+   // Find most likely heartrate
+
+   double max_bpm = 0.0;
+   double max_value = -1.0;
+   int start = minimum_bpm/(frequency_interval*60.0);
+   int end = maximum_bpm/(frequency_interval*60.0)+1;
+   if(start < 0) start = 0;
+   if(end > fourier.size()/2) end = fourier.size()/2;
+   for(int i = start; i < end; ++i){
+      double bpm = (i*frequency_interval*60.0);
+      double value = std::abs(fourier[i].real());
+      if(value > max_value){
+         max_value = value;
+         max_bpm = bpm;
+      }
+   }
+
+   if(max_value < 0.0){
+      std::cerr << "No valid human heartbeats found. Video sequence may be too short." << std::endl;
+      return 0;
+   }
+
+   std::cout << "Estimated heartrate is " << max_bpm << " beats per minute" << std::endl;
 
    return 0;
 }
