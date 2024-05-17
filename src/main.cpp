@@ -2,6 +2,7 @@
 #include <iostream>
 #include <vector>
 #include <complex>
+#include <chrono>
 
 #include <opencv2/core.hpp>
 #include <opencv2/videoio.hpp>
@@ -9,11 +10,37 @@
 
 #include <pocketfft_hdronly.h>
 
+
+class TimeKeeper
+{
+public:
+
+   TimeKeeper() : total(0) {}
+
+   void Start(){
+      start = std::chrono::high_resolution_clock::now();
+   }
+
+   void Stop(){
+      total += std::chrono::high_resolution_clock::now()-start;
+   }
+
+   std::chrono::high_resolution_clock::duration Total() const {
+      return total;
+   }
+
+private:
+   std::chrono::high_resolution_clock::time_point start;
+   std::chrono::high_resolution_clock::duration total;
+};
+
+
 int main(int argc, char ** argv)
 {
    bool show_frequencies = false;
    bool default_data = false;
    bool show_help = false;
+   bool show_timing = false;
 
    std::string video_file;
    cv::Rect roi;
@@ -30,6 +57,8 @@ int main(int argc, char ** argv)
             default_data = true;
          }else if(arg == "--frequencies"){
             show_frequencies = true;
+         }else if(arg == "--timing"){
+            show_timing = true;
          }else{
             std::cerr << "Unknown option " << arg << std::endl;
             show_help = true;
@@ -63,13 +92,20 @@ int main(int argc, char ** argv)
                 << "Options:" << std::endl
                 << " --help         Display this help message." << std::endl
                 << " --default      Use the default video CodingTest.mov with roi x=400 y=150 width=110 height=80." << std::endl
-                << " --frequencies  Show all detected frequencies." << std::endl; 
+                << " --frequencies  Show all detected frequencies." << std::endl
+                << " --timing       Show run time of different parts of the program." << std::endl;
       return 0;
    }
 
    // Minimum and maximum possible heart rates.
    double minimum_bpm = 20.0;
    double maximum_bpm = 150.0;
+
+   TimeKeeper video_time;
+   TimeKeeper sample_time;
+   TimeKeeper fft_time;
+   TimeKeeper search_time;
+
 
    // open video
    cv::VideoCapture video(video_file);
@@ -81,12 +117,15 @@ int main(int argc, char ** argv)
 
    double fps = video.get(cv::CAP_PROP_FPS);
 
-   std::vector<double> samples;
-
    // sample forehead
+   std::vector<double> samples;
    cv::Mat3b frame;
+   video_time.Start();
    while(video.read(frame))
    {
+      video_time.Stop();
+
+      sample_time.Start();
       double sample = 0.0;
       for(int r = roi.y; r < roi.y+roi.width; ++r)
          for(int c = roi.x; c < roi.x+roi.height; ++c)
@@ -95,10 +134,13 @@ int main(int argc, char ** argv)
          }
       sample /= roi.area();
       samples.push_back(sample);
+      sample_time.Stop();
 
       //cv::imshow("frame", frame);
       //cv::waitKey(0);
+      video_time.Start();
    }
+   video_time.Stop();
    std::cout << "obtained " << samples.size() << " samples" << std::endl;
 
    if(samples.empty()){
@@ -118,7 +160,18 @@ int main(int argc, char ** argv)
    pocketfft::shape_t axes{0};
 
    std::vector<std::complex<double>> fourier(samples.size());
+   fft_time.Start();
    pocketfft::r2c(shape_in, stride_in, stride_out, axes, true, samples.data(), fourier.data(), 1.0, 1);
+   fft_time.Stop();
+
+
+   // Display any requested debug info
+
+   if(show_timing){
+      std::cout << "Video reading time: " << std::chrono::duration_cast<std::chrono::microseconds>(video_time.Total()).count() << " us" << std::endl;
+      std::cout << "Sampling time: " << std::chrono::duration_cast<std::chrono::microseconds>(sample_time.Total()).count() << " us" << std::endl;
+      std::cout << "FFT time: " << std::chrono::duration_cast<std::chrono::microseconds>(fft_time.Total()).count() << " us" << std::endl;
+   }
 
    if(show_frequencies){
       for(int i = 0; i < fourier.size()/2; ++i){
