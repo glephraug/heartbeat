@@ -66,7 +66,7 @@ int main(int argc, char ** argv)
       }
 
       if(default_data){
-         video_file = "CodingTest.mov";
+         video_file = "codingtest.mov";
          roi = cv::Rect(400, 150, 110, 80);
       }else if(i+4 >= argc){
          std::cerr << "Not enough arguments" << std::endl;

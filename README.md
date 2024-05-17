@@ -27,9 +27,11 @@ cmake -DOpenCV_DIR="/path/to/your/opencv" ..
 ```
 
 ## Analysis Future Improvements
-I've timed the program running on a video with 1822 frames of data. On my machine, sampling all frames takes a total of 28 milliseconds. The fourier transform takes 274 microseconds. Reading the video data with OpenCV is by far the slowest part of the program, taking about 10 seconds.
+I've timed the program running on a video with 1822 frames of data. On my machine, sampling all frames takes a total of 28 milliseconds. The fourier transform takes 274 microseconds. Reading the video data with OpenCV is by far the slowest part of the program, taking about 10 seconds on my Windows machine and 1 second on Ubuntu.
 
-As far as run time is concerned, faster fourier transform algorithms exist, such as FFTW or CuFFT, but the impact on run time would be negligible. Likewise, sampling could be done much faster using Cuda or SIMD instructions, but the absolute difference in speed would be small.
+As far as run time is concerned, faster fourier transform algorithms exist, such as FFTW or CuFFT, but the impact on run time would be negligible. Likewise, sampling could be done much faster using Cuda or SIMD instructions, but the absolute difference in speed would be small. 
+
+The best runtime performance would be gained by multithreading the video decoding. Cuda has a Video Decode API that may help in speeding up the process. As well, directly using FFMpeg instead of the OpenCV wrapper may offer opportunities for parallelization. Each thread could start at a separate keyframe and decode only a section of the full video.
 
 The algorithm itself could be vastly improved by removing the need to specify a region of interest. A standard face detection algorithm (such as provided by MediaPipe) would give all the information necessary to fully automate the algorithm.
 
