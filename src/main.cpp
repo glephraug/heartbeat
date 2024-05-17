@@ -38,6 +38,7 @@ int main(int argc, char ** argv)
          {
             sample += frame(r,c)(1);
          }
+      sample /= roi.area();
       samples.push_back(sample);
 
       //cv::imshow("frame", frame);
@@ -54,7 +55,7 @@ int main(int argc, char ** argv)
    pocketfft::r2c(shape_in, stride_in, stride_out, axes, true, samples.data(), fourier.data(), 1.0, 1);
 
    if(show_frequencies){
-      for(int i = 0; i < fourier.size(); ++i){
+      for(int i = 0; i < fourier.size()/2; ++i){
          std::cout << i << ": " << fourier[i] << std::endl;
       }
    }
