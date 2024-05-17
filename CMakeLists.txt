@@ -8,7 +8,10 @@ project(heartbeat LANGUAGES CXX)
 include(FetchContent)
 
 # OpenCV doesn't work well with FetchContent, as far as I can tell: https://github.com/opencv/opencv/issues/20548
-set(GET_LIBRARY_DIRECTORY ${CMAKE_BINARY_DIR} CACHE PATH "Location to keep prebuilt libraries")
+
+if(DEFINED OpenCV_DIR)
+   find_package(OpenCV REQUIRED)
+else()
 
 if(NOT DEFINED ${OPENCV_VERSION})
    set(OPENCV_VERSION 4.9.0)
@@ -38,6 +41,7 @@ endif()
 
 set(OpenCV_STATIC ON)
 find_package(OpenCV REQUIRED PATHS ${OPENCV_INSTALL_DIR} NO_DEFAULT_PATH)
+endif()
 
 FetchContent_Declare(
    pocketfft
