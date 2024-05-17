@@ -8,10 +8,11 @@ if(MSVC)
 endif()
 
 target_include_directories(heartbeat PRIVATE
-	${OpenCV_INCLUDE_DIRS}
+   ${OpenCV_INCLUDE_DIRS}
    ${pocketfft_INCLUDE_DIRS}
 )
 
 target_link_libraries(heartbeat
-	${OpenCV_LIBS}
+   ${OpenCV_LIBS}
 )
+

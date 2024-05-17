@@ -26,6 +26,9 @@ CMake will automatically download all dependencies at configure time. If you wou
 cmake -DOpenCV_DIR="/path/to/your/opencv" ..
 ```
 
+Building the project has been tested on Ubuntu and Windows.
+
+
 ## Analysis and Future Improvements
 I've timed the program running on a video with 1822 frames of data. On my machine, sampling all frames takes a total of 28 milliseconds. The fourier transform takes 274 microseconds. Reading the video data with OpenCV is by far the slowest part of the program, taking about 10 seconds on my Windows machine and 1 second on Ubuntu.
 
