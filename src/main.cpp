@@ -11,6 +11,8 @@
 #include <pocketfft_hdronly.h>
 
 
+// The TimeKeeper class is used to measure the running time of different parts
+// of the system.
 class TimeKeeper
 {
 public:
@@ -45,6 +47,9 @@ int main(int argc, char ** argv)
    std::string video_file;
    cv::Rect roi;
 
+
+   // Parse command line arguments
+   
    if(argc < 2){
       show_help = true;
    }else{
@@ -139,12 +144,9 @@ int main(int argc, char ** argv)
       samples.push_back(sample);
       sample_time.Stop();
 
-      //cv::imshow("frame", frame);
-      //cv::waitKey(0);
       video_time.Start();
    }
    video_time.Stop();
-   std::cout << "obtained " << samples.size() << " samples" << std::endl;
 
    if(samples.empty()){
       std::cerr << "There were no samples within the video file" << std::endl;
