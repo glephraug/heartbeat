@@ -23,7 +23,7 @@ cmake --build . --target heartbeat
 ```
 CMake will automatically download all dependencies at configure time. If you would like to use a prebuild version of OpenCV, pass in the OpenCV_DIR variable.
 ```
-cmake -DOpenCV_DIR="/path/to/your/opencv"
+cmake -DOpenCV_DIR="/path/to/your/opencv" ..
 ```
 
 ## Analysis Future Improvements

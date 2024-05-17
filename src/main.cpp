@@ -108,6 +108,7 @@ int main(int argc, char ** argv)
 
 
    // open video
+
    cv::VideoCapture video(video_file);
 
    if(!video.isOpened()){
@@ -117,7 +118,9 @@ int main(int argc, char ** argv)
 
    double fps = video.get(cv::CAP_PROP_FPS);
 
+
    // sample forehead
+
    std::vector<double> samples;
    cv::Mat3b frame;
    video_time.Start();
@@ -166,6 +169,7 @@ int main(int argc, char ** argv)
 
 
    // Find most likely heartrate
+
    search_time.Start();
    double max_bpm = 0.0;
    double max_value = -1.0;
