@@ -165,23 +165,8 @@ int main(int argc, char ** argv)
    fft_time.Stop();
 
 
-   // Display any requested debug info
-
-   if(show_timing){
-      std::cout << "Video reading time: " << std::chrono::duration_cast<std::chrono::microseconds>(video_time.Total()).count() << " us" << std::endl;
-      std::cout << "Sampling time: " << std::chrono::duration_cast<std::chrono::microseconds>(sample_time.Total()).count() << " us" << std::endl;
-      std::cout << "FFT time: " << std::chrono::duration_cast<std::chrono::microseconds>(fft_time.Total()).count() << " us" << std::endl;
-   }
-
-   if(show_frequencies){
-      for(int i = 0; i < fourier.size()/2; ++i){
-         std::cout << (i*frequency_interval) << " Hz (" << (i*frequency_interval*60.0) << " bpm) : " << fourier[i].real() << std::endl;
-      }
-   }
-
-
    // Find most likely heartrate
-
+   search_time.Start();
    double max_bpm = 0.0;
    double max_value = -1.0;
    int start = minimum_bpm/(frequency_interval*60.0);
@@ -196,6 +181,24 @@ int main(int argc, char ** argv)
          max_bpm = bpm;
       }
    }
+   search_time.Stop();
+
+
+   // Display any requested debug info
+
+   if(show_timing){
+      std::cout << "Video reading time: " << std::chrono::duration_cast<std::chrono::microseconds>(video_time.Total()).count() << " us" << std::endl;
+      std::cout << "Sampling time: " << std::chrono::duration_cast<std::chrono::microseconds>(sample_time.Total()).count() << " us" << std::endl;
+      std::cout << "FFT time: " << std::chrono::duration_cast<std::chrono::microseconds>(fft_time.Total()).count() << " us" << std::endl;
+      std::cout << "Search time: " << std::chrono::duration_cast<std::chrono::microseconds>(search_time.Total()).count() << " us" << std::endl;
+   }
+
+   if(show_frequencies){
+      for(int i = 0; i < fourier.size()/2; ++i){
+         std::cout << (i*frequency_interval) << " Hz (" << (i*frequency_interval*60.0) << " bpm) : " << fourier[i].real() << std::endl;
+      }
+   }
+
 
    if(max_value < 0.0){
       std::cerr << "No valid human heartbeats found. Video sequence may be too short." << std::endl;
