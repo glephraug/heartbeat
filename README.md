@@ -5,12 +5,12 @@ Estimate average heart rate from a video of a face.
 ```
 heartbeat <video_file> <x> <y> <width> <height>
 ```
-x, y, width, and height specify the region within the video to sample when detecting the heart rate.
-Options:
- --help         Display a help message.
- --default      Use the default video CodingTest.mov with roi x=400 y=150 width=110 height=80.
- --frequencies  Show all detected frequencies.
- --timing       Show run time of different parts of the program.
+x, y, width, and height specify the region within the video to sample when detecting the heart rate.  
+Options:  
+ --help         Display a help message.  
+ --default      Use the default video CodingTest.mov with roi x=400 y=150 width=110 height=80.  
+ --frequencies  Show all detected frequencies.  
+ --timing       Show run time of different parts of the program.  
 
 
 ## Build
